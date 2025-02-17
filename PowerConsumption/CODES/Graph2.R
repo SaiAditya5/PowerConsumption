@@ -1,60 +1,25 @@
-# R code for creating the 2nd figure
+# Coursera Data Science: Exploratory Data Analysis
+# Course project 1: plot2
+# Cheng-Han Yu
+################################################################################
+## load the data
+rm(list = ls())
+data <- read.table("household_power_consumption.txt", header = T, 
+                   sep = ";", na.strings = "?")
+# convert the date variable to Date class
+data$Date <- as.Date(data$Date, format = "%d/%m/%Y")
 
-# Import the necessary libraries
-library(dplyr)
-library(magrittr)
-library(readr)
+# Subset the data
+data <- subset(data, subset = (Date >= "2007-02-01" & Date <= "2007-02-02"))
 
-# Get only the data I'm going to use to create this graph. To read the data
-# file, I'm using the `read_delim` function from the `readr` library, since
-# this function can deal with compressed files.
-dat <-
-  read_delim(
-    file = "data/household_power_consumption.txt",
-    delim = ";",
-    na = c("?"),
-    col_types = cols(
-      col_date(format = "%d/%m/%Y"),
-      col_time(format = "%H:%M:%S"),
-      col_double(),
-      col_double(),
-      col_double(),
-      col_double(),
-      col_double(),
-      col_double(),
-      col_double()
-    )
-  ) %>%
-  filter(
-    Date == as.Date("2007-02-01", format = "%Y-%m-%d") |
-    Date == as.Date("2007-02-02", format = "%Y-%m-%d")
-  ) %>%
-  select(Date, Time, Global_active_power) %>%
-  # Create a column by combining `Date` and `Time`
-  mutate(datetime = as.POSIXct(paste(Date, Time))) %>%
-  select(datetime, Global_active_power)
+# Convert dates and times
+data$datetime <- strptime(paste(data$Date, data$Time), "%Y-%m-%d %H:%M:%S")
 
-# Translate the names of the weekdays into English. Maybe you don't need this,
-# but I do. The following command is system-dependent, and probably won't work
-# if you're not running Linux.
-Sys.setlocale("LC_TIME", "en_US.utf8")
-
-# Plot the time series
-
-# Make the background transparent
-par(bg = NA)
-
-with(
-  dat,
-  plot(
-    x = datetime,
-    y = Global_active_power,
-    type = "l",
-    xlab = "",
-    ylab = "Global Active Power (kilowatts)"
-  )
-)
-
-# Export to PNG
-dev.copy(png, "plot2.png")
+# Plot 2
+data$datetime <- as.POSIXct(data$datetime)
+attach(data)
+plot(Global_active_power ~ datetime, type = "l",
+     ylab = "Global Active Power (kilowatts)", xlab = "")
+dev.copy(png, file = "plot2.png", height = 480, width = 480)
 dev.off()
+detach(data)
