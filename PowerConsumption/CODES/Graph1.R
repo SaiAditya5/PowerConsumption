@@ -1,48 +1,26 @@
-# R code for creating the 1st figure
+# Coursera Data Science: Exploratory Data Analysis
+# Course project 1: Plot1
+# Cheng-Han Yu
+################################################################################
+## load the data
+rm(list = ls())
+data <- read.table("household_power_consumption.txt", header = T, 
+                   sep = ";", na.strings = "?")
+# convert the date variable to Date class
+data$Date <- as.Date(data$Date, format = "%d/%m/%Y")
 
-# Import the necessary libraries
-library(dplyr)
-library(magrittr)
-library(readr)
+# Subset the data
+data <- subset(data, subset = (Date >= "2007-02-01" & Date <= "2007-02-02"))
 
-# Get only the data I'm going to use to create this graph. To read the data
-# file, I'm using the `read_delim` function from the `readr` library, since this
-# function can deal with compressed files.
-dat <-
-  read_delim(
-    file = file.path("data", "exdata_data_household_power_consumption.zip"),
-    delim = ";",
-    na = c("?"),
-    col_types = cols(
-      col_date(format = "%d/%m/%Y"),
-      col_time(format = "%H:%M:%S"),
-      col_double(),
-      col_double(),
-      col_double(),
-      col_double(),
-      col_double(),
-      col_double(),
-      col_double()
-    )
-  ) %>%
-  filter(
-    Date == as.Date("2007-02-01", format = "%Y-%m-%d") |
-    Date == as.Date("2007-02-02", format = "%Y-%m-%d")
-  ) %>%
-  pull(Global_active_power)
+# Convert dates and times
+data$datetime <- strptime(paste(data$Date, data$Time), "%Y-%m-%d %H:%M:%S")
 
-# Plot the histogram
+# Plot 1
+attach(data)
+hist(Global_active_power, main = "Global Active Power", 
+     xlab = "Global Active Power (kilowatts)", col = "Red")
 
-# Make the background transparent
-par(bg = NA)
-
-hist(
-  dat,
-  col = "red",
-  main = "Global Active Power",
-  xlab = "Global Active Power (kilowatts)"
-)
-
-# Export to PNG
-dev.copy(png, "plot1.png")
+# Save file
+dev.copy(png, file = "plot1.png", height = 480, width = 480)
 dev.off()
+detach(data)
